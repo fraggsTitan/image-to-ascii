@@ -19,16 +19,14 @@ public class BuildASCIIFromImage {
     char[] map2={
       '█','▓','▒','░',' '
     };
-//    private static String format(String in){
-//        if(!in.contains("."))throw new  IllegalArgumentException("String doesnt contain a .");
-//        return in.substring(in.lastIndexOf(".")+1);
-//    }
+    //builds the grayscale image before converting the image to ascii text and outputting to desired directories
     void buildImage(String in, String grayscaleOutput, String bwOutput, @DefaultValue("0") int width, @DefaultValue("0") int height){
         String format=in.substring(in.lastIndexOf(".")+1);
         String out;
         IO.println("Format: "+format);
         out="resources/results/res."+format;
         try{
+            //handles making image to gray
             BufferedImage image=ImageIO.read(new File(in));
             BufferedImage grayed=makeGray(image);
             if(format.equals("jfif"))format="jpg";
@@ -36,8 +34,8 @@ public class BuildASCIIFromImage {
         }catch(IOException e){
             System.err.println("Error In copying data: "+e.getMessage());
         }
-        //IO.println("Image copied to "+out);
         try{
+            //if any param is not specified,then this function will try to adjust for them by using the aspect ratio to fill in values
             BufferedImage image=ImageIO.read(new File(out));
             if(height!=0&&width!=0){
                 image=resize(image,width,height);
@@ -56,6 +54,8 @@ public class BuildASCIIFromImage {
         }
     }
     void writeHTML(String grayscaleOutput,String bwOutput,BufferedImage image) throws IOException {
+        //builds the html file, grayscale output is text based while bwoutput is just the 4 black to white block characters
+        //TODO make this cleaner by using the html library of java
         try(BufferedWriter output=new BufferedWriter(new FileWriter(grayscaleOutput));
             BufferedWriter output2=new BufferedWriter(new FileWriter(bwOutput))) {
             int width = image.getWidth();
@@ -65,6 +65,7 @@ public class BuildASCIIFromImage {
                     """, 1);
             output.write(str);
             output2.write(str);
+            //iterate over every pixel in image, get its a,r,g,b by doing right shift on the bits, then write to the bw/graysclae files
             for (int j = 0; j < height; j++) {
                 for (int i = 0; i < width; i++) {
                     int argb = image.getRGB(i, j);
@@ -78,6 +79,8 @@ public class BuildASCIIFromImage {
                 output.write("\n");
                 output2.write("\n");
             }
+            //javascript to allow for file to allow text resizing
+            //TODO Abstract this javascript to another real js file
             output.write("</pre>");
             output.write("<input type='number' min=0 max=3 value=1 step=0.1 id='val' style='position:absolute;bottom:5%;'>");
             output.write("""
@@ -99,9 +102,6 @@ public class BuildASCIIFromImage {
         }
         IO.println("Files Successfully written to: "+new File(grayscaleOutput)+" and "+new File(bwOutput)+".");
     }
-    void main() {
-
-    }
     public static BufferedImage resize(BufferedImage original,int width,int height){
         BufferedImage resizedImage=new BufferedImage(width,height,original.getType());
         Graphics2D g2d=resizedImage.createGraphics();
@@ -115,12 +115,14 @@ public class BuildASCIIFromImage {
         return resizedImage;
     }
     public static BufferedImage makeGray(BufferedImage image){
+        // just makes image gray and writes to the new file
         BufferedImage newImage=new BufferedImage(image.getWidth(),image.getHeight(),image.getType());
         ColorConvertOp convertOp=new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY),null);
         convertOp.filter(image,newImage);
         return newImage;
     }
     private static String escapeHTML(char c) {
+        //escapes special html characters with their escape values
         return switch (c) {
             case '&' -> "&amp;";
             case '<' -> "&lt;";
