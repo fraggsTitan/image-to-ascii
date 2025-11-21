@@ -17,7 +17,8 @@ public class BuildASCIIFromImage {
       '█','▓','▒','░',' '
     };
     //builds the grayscale image before converting the image to ascii text and outputting to desired directories
-    void buildImage(String in, String grayscaleOutput, String bwOutput, @DefaultValue("0") int width, @DefaultValue("0") int height){
+    void buildImage(String in, String grayscaleOutput, String bwOutput, @DefaultValue("0") int width, @DefaultValue("0") int height,
+                    @DefaultValue("1") int scale){
         String format=in.substring(in.lastIndexOf(".")+1);
         String out;
         IO.println("Format: "+format);
@@ -34,23 +35,29 @@ public class BuildASCIIFromImage {
         try{
             //if any param is not specified,then this function will try to adjust for them by using the aspect ratio to fill in values
             BufferedImage image=ImageIO.read(new File(out));
+            if (width == 0 && height == 0) {
+                width = image.getWidth();
+                height = image.getHeight();
+            }
             if(height!=0&&width!=0){
                 image= ImageManipulation.resize(image,width,height);
                 IO.println("Image resized to "+width+"x"+height+"px");
             }else if(height==0){
                 double aspectRatio = image.getWidth() * 1.000 / image.getHeight();
-                image= ImageManipulation.resize(image,width,(int)(height*aspectRatio));
+                height = (int) (width / aspectRatio);
+                image= ImageManipulation.resize(image,width,height);
             }else{
                 double aspectRatio = image.getWidth() * 1.000 / image.getHeight();
-                image= ImageManipulation.resize(image,(int)(width/aspectRatio),height);
+                width = (int) (height * aspectRatio);
+                image= ImageManipulation.resize(image,width,height);
             }
-            ImageIO.write(image,"png",new File(out));
-            writeHTML(grayscaleOutput,bwOutput,image);
+            ImageIO.write(image,format,new File(out));
+            writeHTML(grayscaleOutput,bwOutput,image,scale);
         }catch(IOException e){
             System.err.println("Error In manipulating data: "+e.getMessage());
         }
     }
-    void writeHTML(String grayscaleOutput,String bwOutput,BufferedImage image) throws IOException {
+    void writeHTML(String grayscaleOutput,String bwOutput,BufferedImage image,int scale) throws IOException {
         //builds the html file, grayscale output is text based while bwoutput is just the 4 black to white block characters
         //TODO make this cleaner by using the html library of java
         try(BufferedWriter output=new BufferedWriter(new FileWriter(grayscaleOutput));
@@ -63,13 +70,17 @@ public class BuildASCIIFromImage {
             output.write(str);
             output2.write(str);
             //iterate over every pixel in image, get its a,r,g,b by doing right shift on the bits, then write to the bw/graysclae files
-            for (int j = 0; j < height; j++) {
-                for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j+=scale) {
+                for (int i = 0; i < width; i+=scale) {
                     int argb = image.getRGB(i, j);
-                    int a = (argb >> 24) & 0xFF;
-                    int r = (argb >> 16) & 0xFF, g = (argb >> 8) & 0xFF, b = (argb) & 0xFF;
-                    double alpha = a / 255.0;
-                    int gray = (int) (alpha * (0.299 * r + 0.587 * g + 0.114 * b) + (1 - alpha) * 255);
+//                    int a = (argb >> 24) & 0xFF;
+//                    int r = (argb >> 16) & 0xFF, g = (argb >> 8) & 0xFF, b = (argb) & 0xFF;
+//                    double alpha = a / 255.0;
+//                    int gray = (int) (alpha * (0.299 * r + 0.587 * g + 0.114 * b) + (1 - alpha) * 255);
+                    int gray = (argb >> 16 & 0xff) * 299 +
+                            (argb >> 8  & 0xff) * 587 +
+                            (argb       & 0xff) * 114;
+                    gray = (gray + 500) / 1000;
                     output2.write(map2[(int) (Math.floor(gray * (map2.length - 1) / 255.00))]);
                     output.write(escapeHTML(asciiMap[(int) (Math.floor(gray * (asciiMap.length - 1) / 255.00))]));
                 }
