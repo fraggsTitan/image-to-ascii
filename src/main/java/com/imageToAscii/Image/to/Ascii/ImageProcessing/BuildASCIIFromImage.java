@@ -2,10 +2,7 @@ package com.imageToAscii.Image.to.Ascii.ImageProcessing;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import javax.imageio.*;
-import java.awt.*;
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorConvertOp;
 import java.io.*;
 public class BuildASCIIFromImage {
     char[] asciiMap = {
@@ -28,7 +25,7 @@ public class BuildASCIIFromImage {
         try{
             //handles making image to gray
             BufferedImage image=ImageIO.read(new File(in));
-            BufferedImage grayed=makeGray(image);
+            BufferedImage grayed= ImageManipulation.makeGray(image);
             if(format.equals("jfif"))format="jpg";
             ImageIO.write(grayed,format,new File(out));
         }catch(IOException e){
@@ -38,14 +35,14 @@ public class BuildASCIIFromImage {
             //if any param is not specified,then this function will try to adjust for them by using the aspect ratio to fill in values
             BufferedImage image=ImageIO.read(new File(out));
             if(height!=0&&width!=0){
-                image=resize(image,width,height);
+                image= ImageManipulation.resize(image,width,height);
                 IO.println("Image resized to "+width+"x"+height+"px");
             }else if(height==0){
                 double aspectRatio = image.getWidth() * 1.000 / image.getHeight();
-                image=resize(image,width,(int)(height*aspectRatio));
+                image= ImageManipulation.resize(image,width,(int)(height*aspectRatio));
             }else{
                 double aspectRatio = image.getWidth() * 1.000 / image.getHeight();
-                image=resize(image,(int)(width/aspectRatio),height);
+                image= ImageManipulation.resize(image,(int)(width/aspectRatio),height);
             }
             ImageIO.write(image,"png",new File(out));
             writeHTML(grayscaleOutput,bwOutput,image);
@@ -102,25 +99,7 @@ public class BuildASCIIFromImage {
         }
         IO.println("Files Successfully written to: "+new File(grayscaleOutput)+" and "+new File(bwOutput)+".");
     }
-    public static BufferedImage resize(BufferedImage original,int width,int height){
-        BufferedImage resizedImage=new BufferedImage(width,height,original.getType());
-        Graphics2D g2d=resizedImage.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        g2d.drawImage(original, 0, 0, width, height, null);
-        g2d.dispose();
-
-        return resizedImage;
-    }
-    public static BufferedImage makeGray(BufferedImage image){
-        // just makes image gray and writes to the new file
-        BufferedImage newImage=new BufferedImage(image.getWidth(),image.getHeight(),image.getType());
-        ColorConvertOp convertOp=new ColorConvertOp(ColorSpace.getInstance(ColorSpace.CS_GRAY),null);
-        convertOp.filter(image,newImage);
-        return newImage;
-    }
     private static String escapeHTML(char c) {
         //escapes special html characters with their escape values
         return switch (c) {
