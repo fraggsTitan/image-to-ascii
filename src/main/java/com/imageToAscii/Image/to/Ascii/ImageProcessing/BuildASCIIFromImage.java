@@ -6,12 +6,21 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 public class BuildASCIIFromImage {
     char[] asciiMap = {
-            '@', '8', '#', '&', '$', 'W',        // Darkest
-            'W', 'M', 'H', 'N', 'm', 'w', 'k',   // Very Dark
-            'b', 'd', 'p', 'q', 'Z',             // Dark Mid-tones
-            'O', '0', 'Q', 'L', 'C', 'J', 'E',   // Middle Values
-            'U', 'Y', 'X', 'z', 'c', 'v', 'u', 'n', 't', // Light Mid-tones
-            'i', 'l', 'I', ':', ';', ',', '"', '^', '`', '.' // Lightest
+            '@', '8',
+            '#', '&', '$',// Darkest
+            'W', 'M',
+            'H', 'N',
+            //'m', 'w', 'k',   // Very Dark
+            'b', 'd', 'p', 'q',
+            'Z',             // Dark Mid-tones
+            'O', '0', 'Q', 'L',
+            'C', 'J', 'E',   // Middle Values
+            //'U', 'Y', 'X',
+             'z', 'c', 'v', 'u', 'n', 't', // Light Mid-tones
+            //'i', 'l', 'I',
+            ':', ';', ',',
+            //'"', '^',
+            '`', '.' // Lightest
     };
     char[] map2={
       '█','▓','▒','░',' '
@@ -22,7 +31,7 @@ public class BuildASCIIFromImage {
         String format=in.substring(in.lastIndexOf(".")+1);
         String out;
         IO.println("Format: "+format);
-        out="resources/results/res."+format;
+        out="D:\\IntelliJWorkspace\\Image-to-Ascii\\src\\main\\resources\\static\\res."+format;
         try{
             //handles making image to gray
             BufferedImage image=ImageIO.read(new File(in));
@@ -121,6 +130,11 @@ public class BuildASCIIFromImage {
             case '\'' -> "&#39;";
             default -> String.valueOf(c);
         };
+    }
+    void main(){
+        buildImage("D:\\IntelliJWorkspace\\Image-to-Ascii\\src\\main\\resources\\static\\input.jpg"
+                ,"D:\\IntelliJWorkspace\\Image-to-Ascii\\src\\main\\resources\\static\\gray.html",
+                "D:\\IntelliJWorkspace\\Image-to-Ascii\\src\\main\\resources\\static\\bw.html",800,0,1);
     }
 }
 
