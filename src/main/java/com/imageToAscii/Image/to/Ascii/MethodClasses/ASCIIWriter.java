@@ -6,8 +6,15 @@ import com.imageToAscii.Image.to.Ascii.ImageProcessing.ImageManipulation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class ASCIIWriter {
@@ -29,38 +36,57 @@ public class ASCIIWriter {
             '█','▓','▒','░',' '
     };
     //builds the grayscale image before converting the image to ascii text and outputting to desired directories
-    void buildImage(BufferedImage image, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
+    List<CharCountMap> buildImage(BufferedImage image, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
                     @DefaultValue("1") int scale, String format){
         logger.info("Writing info of a {} file with dimensions: {}x{} and scale: {}", format, width, height, scale);
         image = resizeToDims(image, width, height);
         logger.info("Image resized to {}x{}", width, height);
         BufferedImage grayed=ImageManipulation.makeGray(image);
         logger.info("Image grayed successfully");
-        createString(mapping,grayed,scale);
+        return createString(mapping,grayed,scale);
+    }
+    List<List<CharCountMap>> buildGif(ImageInputStream stream, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
+                  @DefaultValue("1") int scale) throws IOException {
+        logger.info("Writing info of a {} file with dimensions: {}x{} and scale: {}", width, height, scale);
+        logger.info("GIF resized to {}x{}", width, height);
+        Iterator<ImageReader>readers= ImageIO.getImageReaders(stream);
+        ImageReader reader=readers.next();
+        reader.setInput(stream);
+        List<List<CharCountMap>>freqCountlists=new ArrayList<>();
+        int frames=reader.getNumImages(true);
+        for(int i=0;i<frames;i++){
+            BufferedImage image=reader.read(i);
+            image=resizeToDims(image,width,height);
+            freqCountlists.add(createString(mapping,image,scale));
+        }
+        reader.dispose();
+        stream.close();
+        return freqCountlists;
     }
 
-
-    void createString(ColorMap mapping,BufferedImage image,int scale) {
+    List<CharCountMap> createString(ColorMap mapping, BufferedImage image, int scale) {
         //builds the html file, grayscale output is text based while bwoutput is just the 4 black to white block characters
         int width = image.getWidth();
         int height = image.getHeight();
         List<CharCountMap> freqMap=new ArrayList<>();
-            for (int j = 0; j < height; j+=scale) {
-                for (int i = 0; i < width; i += scale) {
-                    int argb = image.getRGB(i, j);
-                    int gray = (argb >> 16 & 0xff) * 299 +
-                            (argb >> 8 & 0xff) * 587 +
-                            (argb & 0xff) * 114;
-                    gray = (gray + 500) / 1000;
-                    char mappedChar;
-                    if(mapping==ColorMap.ASCII) mappedChar= (asciiMap[(int) (Math.floor(gray * (asciiMap.length - 1) / 255.00))]);
-                    else mappedChar= ((blocks[(int) (Math.floor(gray * (blocks.length - 1) / 255.00))]));
-                    if(freqMap.isEmpty()||!(freqMap.getLast().ch==(mappedChar)))freqMap.add(new CharCountMap(mappedChar,1));
-                    else freqMap.getLast().incrementCount();
-                }
-                freqMap.add(new CharCountMap('\n',1));
+        for (int j = 0; j < height; j+=scale) {
+            for (int i = 0; i < width; i += scale) {
+                int argb = image.getRGB(i, j);
+                int gray = (argb >> 16 & 0xff) * 299 +
+                        (argb >> 8 & 0xff) * 587 +
+                        (argb & 0xff) * 114;
+                gray = (gray + 500) / 1000;
+                char mappedChar;
+                if(mapping==ColorMap.ASCII) mappedChar= (asciiMap[(int) (Math.floor(gray * (asciiMap.length - 1) / 255.00))]);
+                else mappedChar= ((blocks[(int) (Math.floor(gray * (blocks.length - 1) / 255.00))]));
+                if(freqMap.isEmpty()||!(freqMap.getLast().ch==(mappedChar)))freqMap.add(new CharCountMap(mappedChar,1));
+                else freqMap.getLast().incrementCount();
             }
+            freqMap.add(new CharCountMap('\n',1));
+        }
         logger.info("Image converted to a freqMap list successfully.FreqMap size: {}", freqMap.size());
+        return freqMap;
+
     }
 
     private static BufferedImage resizeToDims(BufferedImage image, int width, int height) {
