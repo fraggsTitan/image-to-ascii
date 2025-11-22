@@ -41,7 +41,7 @@ public class ASCIIWriter {
             '█','▓','▒','░',' '
     };
     //builds the grayscale image before converting the image to ascii text and outputting to desired directories
-    List<CharCountMap> buildImage(BufferedImage image, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
+    public List<CharCountMap> buildImage(BufferedImage image, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
                     @DefaultValue("1") int scale, String format){
         logger.info("Writing info of a {} file with dimensions: {}x{} and scale: {}", format, width, height, scale);
         image = resizeToDims(image, width, height);
@@ -50,7 +50,7 @@ public class ASCIIWriter {
         logger.info("Image grayed successfully");
         return createString(mapping,grayed,scale);
     }
-    List<GIFCharMap> buildGif(ImageInputStream stream, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
+    public List<GIFCharMap> buildGif(ImageInputStream stream, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
                   @DefaultValue("1") int scale) throws IOException {
         logger.info("Writing info of a GIF with dimensions: {}x{} and scale: {}", width, height, scale);
         logger.info("GIF resized to {}x{}", width, height);
@@ -71,13 +71,10 @@ public class ASCIIWriter {
     }
     private int getGifDelay(ImageReader reader, int frameIndex) throws IOException {
         IIOMetadata metadata = reader.getImageMetadata(frameIndex);
-
         String metaFormat = metadata.getNativeMetadataFormatName();
         Node root = metadata.getAsTree(metaFormat);
-
         NodeList gceNodes = ((org.w3c.dom.Element) root)
                 .getElementsByTagName("GraphicControlExtension");
-
         if (gceNodes.getLength() > 0) {
             org.w3c.dom.Node gce = gceNodes.item(0);
             NamedNodeMap attrs = gce.getAttributes();
@@ -90,7 +87,7 @@ public class ASCIIWriter {
 
         return 100; // fallback default = 100ms
     }
-    List<CharCountMap> createString(ColorMap mapping, BufferedImage image, int scale) {
+    private List<CharCountMap> createString(ColorMap mapping, BufferedImage image, int scale) {
         //builds the html file, grayscale output is text based while bwoutput is just the 4 black to white block characters
         int width = image.getWidth();
         int height = image.getHeight();
