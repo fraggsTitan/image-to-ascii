@@ -41,17 +41,16 @@ public class ASCIIWriter {
             '█','▓','▒','░',' '
     };
     //builds the grayscale image before converting the image to ascii text and outputting to desired directories
-    public List<CharCountMap> buildImage(BufferedImage image, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
-                    @DefaultValue("1") int scale, String format){
+    public List<CharCountMap> buildImage(BufferedImage image, ColorMap mapping,  Integer width,  Integer height,
+                     Integer scale, String format){
         logger.info("Writing info of a {} file with dimensions: {}x{} and scale: {}", format, width, height, scale);
         image = resizeToDims(image, width, height);
-        logger.info("Image resized to {}x{}", width, height);
         BufferedImage grayed=ImageManipulation.makeGray(image);
         logger.info("Image grayed successfully");
         return createString(mapping,grayed,scale);
     }
-    public List<GIFCharMap> buildGif(ImageInputStream stream, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
-                  @DefaultValue("1") int scale) throws IOException {
+    public List<GIFCharMap> buildGif(ImageInputStream stream, ColorMap mapping,  Integer width, Integer height,
+                   Integer scale) throws IOException {
         logger.info("Writing info of a GIF with dimensions: {}x{} and scale: {}", width, height, scale);
         logger.info("GIF resized to {}x{}", width, height);
         Iterator<ImageReader>readers= ImageIO.getImageReaders(stream);
@@ -59,11 +58,13 @@ public class ASCIIWriter {
         reader.setInput(stream);
         List<GIFCharMap>frameList=new ArrayList<>();
         int frames=reader.getNumImages(true);
+        logger.info("Number Of Frames: {}", frames);
         for(int i=0;i<frames;i++){
             BufferedImage image=reader.read(i);
             image=resizeToDims(image,width,height);
             int delay=getGifDelay(reader,i);
             frameList.add(new GIFCharMap(delay,createString(mapping,image,scale)));
+            logger.info("Processed frame number: {}",i);
         }
         reader.dispose();
         stream.close();
@@ -113,6 +114,7 @@ public class ASCIIWriter {
     }
 
     private static BufferedImage resizeToDims(BufferedImage image, int width, int height) {
+        logger.info("Dimensions passed into resizeToDims {}x{}", width, height);
         if (width == 0 && height == 0) {
             width = image.getWidth();
             height = image.getHeight();
@@ -120,7 +122,7 @@ public class ASCIIWriter {
         }
         if(height !=0&& width !=0){
             image = ImageManipulation.resize(image, width, height);
-            IO.println("Image resized to "+ width +"x"+ height +"px");
+            IO.println("Image resized to "+ image.getWidth() +"x"+ image.getHeight() +"px");
         }else if(height ==0){
             double aspectRatio = image.getWidth() * 1.000 / image.getHeight();
             height = (int) (width / aspectRatio);
