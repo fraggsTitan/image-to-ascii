@@ -2,13 +2,18 @@ package com.imageToAscii.Image.to.Ascii.MethodClasses;
 
 import com.imageToAscii.Image.to.Ascii.DataClasses.CharCountMap;
 import com.imageToAscii.Image.to.Ascii.DataClasses.ColorMap;
+import com.imageToAscii.Image.to.Ascii.DataClasses.GIFCharMap;
 import com.imageToAscii.Image.to.Ascii.ImageProcessing.ImageManipulation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -45,25 +50,46 @@ public class ASCIIWriter {
         logger.info("Image grayed successfully");
         return createString(mapping,grayed,scale);
     }
-    List<List<CharCountMap>> buildGif(ImageInputStream stream, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
+    List<GIFCharMap> buildGif(ImageInputStream stream, ColorMap mapping, @DefaultValue("0") int width, @DefaultValue("0") int height,
                   @DefaultValue("1") int scale) throws IOException {
-        logger.info("Writing info of a {} file with dimensions: {}x{} and scale: {}", width, height, scale);
+        logger.info("Writing info of a GIF with dimensions: {}x{} and scale: {}", width, height, scale);
         logger.info("GIF resized to {}x{}", width, height);
         Iterator<ImageReader>readers= ImageIO.getImageReaders(stream);
         ImageReader reader=readers.next();
         reader.setInput(stream);
-        List<List<CharCountMap>>freqCountlists=new ArrayList<>();
+        List<GIFCharMap>frameList=new ArrayList<>();
         int frames=reader.getNumImages(true);
         for(int i=0;i<frames;i++){
             BufferedImage image=reader.read(i);
             image=resizeToDims(image,width,height);
-            freqCountlists.add(createString(mapping,image,scale));
+            int delay=getGifDelay(reader,i);
+            frameList.add(new GIFCharMap(delay,createString(mapping,image,scale)));
         }
         reader.dispose();
         stream.close();
-        return freqCountlists;
+        return frameList;
     }
+    private int getGifDelay(ImageReader reader, int frameIndex) throws IOException {
+        IIOMetadata metadata = reader.getImageMetadata(frameIndex);
 
+        String metaFormat = metadata.getNativeMetadataFormatName();
+        Node root = metadata.getAsTree(metaFormat);
+
+        NodeList gceNodes = ((org.w3c.dom.Element) root)
+                .getElementsByTagName("GraphicControlExtension");
+
+        if (gceNodes.getLength() > 0) {
+            org.w3c.dom.Node gce = gceNodes.item(0);
+            NamedNodeMap attrs = gce.getAttributes();
+            Node delayNode = attrs.getNamedItem("delayTime");
+            if (delayNode != null) {
+                int delay = Integer.parseInt(delayNode.getNodeValue());
+                return delay * 10; // convert to milliseconds
+            }
+        }
+
+        return 100; // fallback default = 100ms
+    }
     List<CharCountMap> createString(ColorMap mapping, BufferedImage image, int scale) {
         //builds the html file, grayscale output is text based while bwoutput is just the 4 black to white block characters
         int width = image.getWidth();
