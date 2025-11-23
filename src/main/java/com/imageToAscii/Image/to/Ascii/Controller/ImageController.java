@@ -5,6 +5,7 @@ import com.imageToAscii.Image.to.Ascii.DataClasses.ColorMap;
 import com.imageToAscii.Image.to.Ascii.DataClasses.GIFCharMap;
 import com.imageToAscii.Image.to.Ascii.ImageProcessing.ImageManipulation;
 import com.imageToAscii.Image.to.Ascii.MethodClasses.ASCIIWriter;
+import com.imageToAscii.Image.to.Ascii.MethodClasses.InvalidCropException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,6 +45,10 @@ public class ImageController {
             throw new UnexpectedFormatException("Received GIF Format image in method that doesn't handle it. Try /ascii/gif instead. If you wanted to crop a GIF, it isnt supported yet.");
         }
         BufferedImage img=ImageIO.read(file.getInputStream());
+        if(x+cropWidth>img.getWidth()||y+cropHeight>img.getHeight()){
+            throw new InvalidCropException("The dimensions for crop with max width of "+(x+cropWidth)+"px and max height of "+(y+cropHeight)+
+                    "px do not fall within the given image's dimensions of "+width+"x"+height+"px");
+        }
         try {
             img = ImageManipulation.cropImage(img, x, y, cropWidth, cropHeight);
         }catch (Exception e){

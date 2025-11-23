@@ -6,7 +6,6 @@ import com.imageToAscii.Image.to.Ascii.DataClasses.GIFCharMap;
 import com.imageToAscii.Image.to.Ascii.ImageProcessing.ImageManipulation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -89,7 +88,7 @@ public class ASCIIWriter {
         return 100; // fallback default = 100ms
     }
     private List<CharCountMap> createString(ColorMap mapping, BufferedImage image, int scale) {
-        //builds the html file, grayscale output is text based while bwoutput is just the 4 black to white block characters
+        //builds the html file, grayscale output is text based while bw output is just the 4 black to white block characters
         int width = image.getWidth();
         int height = image.getHeight();
         List<CharCountMap> freqMap=new ArrayList<>();
@@ -134,7 +133,8 @@ public class ASCIIWriter {
         }
         return image;
     }
-    //EXTRACT THIS LOGIC TO FRONTEND
+    }
+ /**   //EXTRACT THIS LOGIC TO FRONTEND
 //    private static String escapeHTML(char c) {
 //        //escapes special html characters with their escape values
 //        return switch (c) {
@@ -147,12 +147,10 @@ public class ASCIIWriter {
 //        };
 //    }
 }
-/**
- *
+/***
  * const file = document.querySelector("input[type=file]").files[0];
  * const formData = new FormData();
  * formData.append("image", file);
- *
  * fetch("/upload", {
  *     method: "POST",
  *     body: formData

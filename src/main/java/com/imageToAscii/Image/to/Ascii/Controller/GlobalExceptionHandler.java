@@ -1,5 +1,6 @@
 package com.imageToAscii.Image.to.Ascii.Controller;
 
+import com.imageToAscii.Image.to.Ascii.MethodClasses.InvalidCropException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,6 +15,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("UNSUPPORTED_FORMAT", ex.getMessage()));
     }
-
+    @ExceptionHandler(InvalidCropException.class)
+    public ResponseEntity<?> handleInvalidCrop(InvalidCropException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("INVALID_CROP", ex.getMessage()));
+    }
     record ErrorResponse(String error, String message) {}
 }
