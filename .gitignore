@@ -7,6 +7,7 @@ src/main/resources/static/*.jpg
 src/main/resources/static/*.jpeg
 src/main/resources/static/*.png
 src/main/resources/static/*.html
+node_modules/
 ### STS ###
 .apt_generated
 .classpath
