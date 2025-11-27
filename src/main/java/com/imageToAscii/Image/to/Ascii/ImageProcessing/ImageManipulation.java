@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorConvertOp;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 
 public class ImageManipulation {
     public static BufferedImage cropImage(BufferedImage image, int x, int y, int width, int height){
@@ -29,4 +31,39 @@ public class ImageManipulation {
         convertOp.filter(image,newImage);
         return newImage;
     }
+    public static BufferedImage gaussianBlur(BufferedImage src, int radius) {
+        if (radius < 1) return src;
+
+        int size = radius * 2 + 1;
+        float[] data = new float[size * size];
+
+        // Build Gaussian kernel
+        float sigma = radius / 2f;
+        float twoSigmaSquare = 2f * sigma * sigma;
+        float sigmaRoot = (float) Math.sqrt(twoSigmaSquare * Math.PI);
+        float total = 0;
+
+        int index = 0;
+        for (int y = -radius; y <= radius; y++) {
+            for (int x = -radius; x <= radius; x++) {
+                float distance = x * x + y * y;
+                data[index] = (float) Math.exp(-distance / twoSigmaSquare) / sigmaRoot;
+                total += data[index];
+                index++;
+            }
+        }
+
+        // Normalize so kernel sums to 1
+        for (int i = 0; i < data.length; i++) {
+            data[i] /= total;
+        }
+
+        Kernel kernel = new Kernel(size, size, data);
+        ConvolveOp op = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
+
+        BufferedImage dest = new BufferedImage(src.getWidth(), src.getHeight(), src.getType());
+        op.filter(src, dest);
+        return dest;
+    }
+
 }

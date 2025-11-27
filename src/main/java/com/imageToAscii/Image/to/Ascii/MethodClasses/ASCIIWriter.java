@@ -50,6 +50,7 @@ public class ASCIIWriter {
         logger.info("Writing info of a {} file with dimensions: {}x{} and scale: {}", format, width, height, scale);
         image = resizeToDims(image, width, height);
         BufferedImage grayed=ImageManipulation.makeGray(image);
+        grayed = ImageManipulation.gaussianBlur(grayed, 1); // apply mild gaussian blue
         logger.info("Image grayed successfully");
         return createString(mapping,grayed,scale);
     }
