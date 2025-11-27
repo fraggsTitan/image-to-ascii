@@ -8,6 +8,7 @@ import com.imageToAscii.Image.to.Ascii.MethodClasses.ASCIIWriter;
 import com.imageToAscii.Image.to.Ascii.MethodClasses.InvalidCropException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,7 +43,7 @@ public class ImageController {
                                                @RequestParam(defaultValue = "1") Integer scale,@RequestParam String format,
                                              @RequestParam int x, @RequestParam int y,@RequestParam int cropWidth,@RequestParam int cropHeight) throws IOException {
         if(format.equalsIgnoreCase("GIF")){
-            throw new UnexpectedFormatException("Received GIF Format image in method that doesn't handle it. Try /ascii/gif instead. If you wanted to crop a GIF, it isnt supported yet.");
+            throw new UnexpectedFormatException("Received GIF Format image in method that doesn't handle it. Try /ascii/gif instead. If you wanted to crop a GIF, it isn't supported yet.");
         }
         BufferedImage img=ImageIO.read(file.getInputStream());
         if(x+cropWidth>img.getWidth()||y+cropHeight>img.getHeight()){

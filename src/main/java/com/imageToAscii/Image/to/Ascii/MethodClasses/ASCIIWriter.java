@@ -39,6 +39,11 @@ public class ASCIIWriter {
     char[] blocks ={
             '█','▓','▒','░',' '
     };
+    private int applyGamma(int gray, double gamma) {
+        double normalized = gray / 255.0;
+        normalized = Math.pow(normalized, gamma);
+        return (int)(normalized * 255);
+    }
     //builds the grayscale image before converting the image to ascii text and outputting to desired directories
     public List<CharCountMap> buildImage(BufferedImage image, ColorMap mapping,  Integer width,  Integer height,
                      Integer scale, String format){
@@ -65,9 +70,15 @@ public class ASCIIWriter {
             frameList.add(new GIFCharMap(delay,createString(mapping,image,scale)));
             logger.info("Processed frame number: {}",i);
         }
+        logger.info("Processed gif completely,Total characters: {}",getGIFMapTotalChars(frameList));
         reader.dispose();
         stream.close();
         return frameList;
+    }
+    public long getGIFMapTotalChars(List<GIFCharMap> gifMaps){
+        long count=0;
+        for(GIFCharMap charMap:gifMaps){for(CharCountMap map:charMap.charMaps){count+=map.getFreq();}}
+        return count;
     }
     private int getGifDelay(ImageReader reader, int frameIndex) throws IOException {
         IIOMetadata metadata = reader.getImageMetadata(frameIndex);
@@ -99,8 +110,10 @@ public class ASCIIWriter {
                         (argb >> 8 & 0xff) * 587 +
                         (argb & 0xff) * 114;
                 gray = (gray + 500) / 1000;
+                gray=applyGamma(gray,0.6);//adjust for natural light
+                gray = Math.min(240, Math.max(15, gray));//reduce overstabilization from phones
                 char mappedChar;
-                if(mapping==ColorMap.ASCII) mappedChar= (asciiMap[(int) (Math.floor(gray * (asciiMap.length - 1) / 255.00))]);
+                if(mapping==ColorMap.TEXT) mappedChar= (asciiMap[(int) (Math.floor(gray * (asciiMap.length - 1) / 255.00))]);
                 else mappedChar= ((blocks[(int) (Math.floor(gray * (blocks.length - 1) / 255.00))]));
                 if(freqMap.isEmpty()||!(freqMap.getLast().ch==(mappedChar)))freqMap.add(new CharCountMap(mappedChar,1));
                 else freqMap.getLast().incrementCount();
@@ -121,15 +134,17 @@ public class ASCIIWriter {
         }
         if(height !=0&& width !=0){
             image = ImageManipulation.resize(image, width, height);
-            IO.println("Image resized to "+ image.getWidth() +"x"+ image.getHeight() +"px");
+            logger.info("Image resized to {}x{}px", image.getWidth(), image.getHeight());
         }else if(height ==0){
             double aspectRatio = image.getWidth() * 1.000 / image.getHeight();
             height = (int) (width / aspectRatio);
             image = ImageManipulation.resize(image, width, height);
+            logger.info("Image resized to {}x{}px", image.getWidth(), image.getHeight());
         }else{
             double aspectRatio = image.getWidth() * 1.000 / image.getHeight();
             width = (int) (height * aspectRatio);
             image = ImageManipulation.resize(image, width, height);
+            logger.info("Image resized to {}x{}px", image.getWidth(), image.getHeight());
         }
         return image;
     }

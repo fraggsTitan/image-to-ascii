@@ -11,4 +11,5 @@ public class GIFCharMap {
     public List<CharCountMap> getCharMaps() {
         return new ArrayList<>(charMaps);
     }
+
 }
