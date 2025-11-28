@@ -121,7 +121,6 @@ function CropCanvas({ image, onCropChange }) {
 export default function App() {
 
     const [mode, setMode] = useState("text");
-    const [fileName, setFileName] = useState("No file selected");
     const [preview, setPreview] = useState(null);
     const [isGif, setIsGif] = useState(false);
     const [format, setFormat] = useState("");
@@ -144,7 +143,6 @@ export default function App() {
         if (e.target.files.length > 0) {
             const file = e.target.files[0];
             setFileObj(file);
-            setFileName(file.name);
             setData(null);
             // MIME type based detection
             const mime = file.type || "";
@@ -583,7 +581,7 @@ function AsciiGifPlayer({ frames }) {
 function ASCIIImageDisplay({ image }) {
     const [textSize, setTextSize] = useState(1.3);
     const [brightness, setBrightness] = useState(255);
-    const [color, setColor] = useState("#ffffff"); // NEW
+    const [color, setColor] = useState("#ffffff");
 
     const { asciiText, inverted } = useMemo(() => {
         if (!image) return { asciiText: "", inverted: false };
@@ -599,6 +597,19 @@ function ASCIIImageDisplay({ image }) {
     }, [image]);
 
     if (!asciiText) return null;
+
+    // ⭐ Download handler
+    const handleDownload = () => {
+        const blob = new Blob([asciiText], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ascii-art.txt";
+        a.click();
+
+        URL.revokeObjectURL(url);
+    };
 
     return (
         <div style={{ color: "white", textAlign: "center" }}>
@@ -633,17 +644,32 @@ function ASCIIImageDisplay({ image }) {
                 <div style={{ fontSize: "12px" }}>Brightness: {brightness}</div>
             </div>
 
-            {/* Color Picker — NEW */}
+            {/* Color Picker */}
             <div style={{ marginBottom: "10px" }}>
                 <input
                     type="color"
                     value={color}
-                    disabled={inverted} // disable if auto-inverted
+                    disabled={inverted}
                     onChange={(e) => setColor(e.target.value)}
                 />
                 <div style={{ fontSize: "12px" }}>
                     Text Color: {color} {inverted ? "(auto-inverted)" : ""}
                 </div>
+            </div>
+
+            {/* ⭐ Download TXT Button */}
+            <div style={{ marginBottom: "15px" }}>
+                <button
+                    onClick={handleDownload}
+                    style={{
+                        padding: "8px 16px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        borderRadius: "6px",
+                    }}
+                >
+                    Download ASCII (TXT)
+                </button>
             </div>
 
             <pre
@@ -666,3 +692,4 @@ function ASCIIImageDisplay({ image }) {
         </div>
     );
 }
+
