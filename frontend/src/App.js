@@ -252,28 +252,50 @@ export default function App() {
                         📤 Upload Image
                     </h4>
 
-                    <div className="d-flex align-items-center justify-content-center">
-                        <label
-                            htmlFor="upload"
-                            className="btn text-white px-4 py-2"
-                            style={{
-                                background: "linear-gradient(135deg,#6a11cb,#2575fc)",
-                                borderRadius: "10px",
-                                cursor: "pointer",
-                                fontWeight: "600",
-                                marginRight: "15px"
-                            }}
-                        >
-                            Choose File
-                        </label>
-                        <input
-                            id="upload"
-                            type="file"
-                            accept="image/*"
-                            style={{ display: "none" }}
-                            onChange={handleFile}
-                        />
+                    <div
+                        className="upload-dropzone"
+                        onClick={() => document.getElementById("upload").click()}
+                        onDragOver={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.classList.add("drag-active");
+                        }}
+                        onDragLeave={(e) => {
+                            e.currentTarget.classList.remove("drag-active");
+                        }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.classList.remove("drag-active");
+
+                            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                const fakeEvent = { target: { files: e.dataTransfer.files } };
+                                handleFile(fakeEvent);
+                            }
+                        }}
+                        style={{
+                            width: "100%",
+                            padding: "50px 40px",
+                            textAlign: "center",
+                        }}
+                    >
+                        <div>
+                            <h5 className="mb-2" style={{ color: "#c9d1d9", fontWeight: "600" }}>
+                                Drag & Drop Image Here
+                            </h5>
+
+                            <span style={{ color: "#9ba3af", fontSize: "0.9rem" }}>
+                or <strong style={{ color: "#58a6ff" }}>click</strong> to choose from computer
+            </span>
+                        </div>
                     </div>
+
+                    {/* Hidden input */}
+                    <input
+                        id="upload"
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={handleFile}
+                    />
 
                     {/* Preview */}
                     {preview && (

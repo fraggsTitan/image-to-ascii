@@ -43,3 +43,52 @@ input:checked + .slider {
 input:checked + .slider:before {
     transform: translateX(26px);
 }
+.upload-dropzone {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    cursor: pointer;
+    border: 2px dashed #333;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.upload-dropzone::before {
+    content: "";
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: calc(100% + 4px);
+    height: calc(100% + 4px);
+    background: linear-gradient(
+            120deg,
+            #6a11cb,
+            #2575fc,
+            #6a11cb
+    );
+    background-size: 300% 300%;
+    animation: movingGradient 4s linear infinite;
+    border-radius: 16px;
+    z-index: 0;
+    opacity: 0; /* hidden until hover or drag */
+    transition: opacity 0.3s ease;
+}
+
+.upload-dropzone:hover::before {
+    opacity: 0.6;
+}
+
+.upload-dropzone.drag-active {
+    border-color: #6a11cb !important;
+    box-shadow: 0 0 22px rgba(106, 17, 203, 0.4);
+}
+
+.upload-dropzone > div {
+    position: relative;
+    z-index: 10;
+}
+
+@keyframes movingGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
